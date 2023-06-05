@@ -2,6 +2,7 @@ package com.example.intentcamera
 
 import android.Manifest
 import android.content.Intent
+import android.content.Intent.ACTION_GET_CONTENT
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -80,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         createCustomTempFile(application).also {
             val photoURI: Uri = FileProvider.getUriForFile(
                 this@MainActivity,
-                "com.dicoding.picodiploma.mycamera",
+                "com.example.intentcamera",
                 it
             )
             currentPhotoPath = it.absolutePath
@@ -90,7 +91,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startGallery() {
-        Toast.makeText(this, "Fitur ini belum tersedia", Toast.LENGTH_SHORT).show()
+        val intent = Intent()
+        intent.action = ACTION_GET_CONTENT
+        intent.type = "image/*"
+        val chooser = Intent.createChooser(intent, "Choose a Picture")
+        launcherIntentGallery.launch(chooser)
     }
 
     private fun uploadImage() {
@@ -128,6 +133,18 @@ class MainActivity : AppCompatActivity() {
 //              Silakan gunakan kode ini jika mengalami perubahan rotasi
 //              rotateFile(file)
                 binding.previewImageView.setImageBitmap(BitmapFactory.decodeFile(file.path))
+            }
+        }
+    }
+
+    private val launcherIntentGallery = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val selectedImg = result.data?.data as Uri
+            selectedImg.let { uri ->
+                val myFile = uriToFile(uri, this@MainActivity)
+                binding.previewImageView.setImageURI(uri)
             }
         }
     }
